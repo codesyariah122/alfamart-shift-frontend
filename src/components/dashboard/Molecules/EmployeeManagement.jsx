@@ -4,6 +4,7 @@ import Skeleton from 'react-loading-skeleton';
 import toast from 'react-hot-toast';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import Swal from 'sweetalert2';
 import { useAuth, useEmployees } from '@/context';
 
@@ -11,20 +12,26 @@ const EmployeeManagement = () => {
     const {
         employees,
         stores,
+        pagination,
         loading,
         addEmployee,
         updateEmployee,
-        deleteEmployee
+        deleteEmployee,
+        fetchEmployees
     } = useEmployees();
     const [submitting, setSubmitting] = useState(false);
     const [search, setSearch] = useState('');
     const [filtered, setFiltered] = useState([]);
     const [editing, setEditing] = useState(null);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     // Tambahkan store_id di form
     const [form, setForm] = useState({ store_id: '', name: '', nik: '', gender: '', email: '', phone: '' });
     const { user } = useAuth();
 
-
+    useEffect(() => {
+        fetchEmployees(page, search);
+    }, [page, search, fetchEmployees]);
 
     useEffect(() => {
         setFiltered(employees);
@@ -97,6 +104,7 @@ const EmployeeManagement = () => {
             }
         });
     };
+
 
     return (
         <div className="p-6">
@@ -265,6 +273,39 @@ const EmployeeManagement = () => {
                             ))}
                         </tbody>
                     </table>
+                    <div className="flex justify-center items-center gap-2 mt-4">
+                        {/* Prev Button */}
+                        <button
+                            onClick={() => setPage(page - 1)}
+                            disabled={page <= 1}
+                            className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100 transition"
+                        >
+                            <ChevronLeftIcon className="w-5 h-5" />
+                            Prev
+                        </button>
+
+                        {/* Page Numbers */}
+                        {Array.from({ length: pagination.lastPage }, (_, i) => i + 1).map((pageNum) => (
+                            <button
+                                key={pageNum}
+                                onClick={() => setPage(pageNum)}
+                                className={`px-3 py-1 border rounded hover:bg-gray-100 transition ${pageNum === page ? 'bg-blue-600 text-white' : ''
+                                    }`}
+                            >
+                                {pageNum}
+                            </button>
+                        ))}
+
+                        {/* Next Button */}
+                        <button
+                            onClick={() => setPage(page + 1)}
+                            disabled={page >= pagination.lastPage}
+                            className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100 transition"
+                        >
+                            Next
+                            <ChevronRightIcon className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             )}
             {submitting && (

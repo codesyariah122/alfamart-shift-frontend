@@ -15,18 +15,34 @@ export const EmployeeProvider = ({ children }) => {
     const [employees, setEmployees] = useState([]);
     const [stores, setStores] = useState([]); // store state
     const [loading, setLoading] = useState(false);
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        lastPage: 1,
+        total: 0,
+    });
 
-    const fetchEmployees = useCallback(async () => {
+    const fetchEmployees = useCallback(async (page = 1, search = '') => {
         setLoading(true);
         try {
-            const res = await api.get('/employees');
+            const res = await api.get('/employees', {
+                params: {
+                    page,
+                    search,
+                },
+            });
             setEmployees(res.data?.data?.data || []);
+            setPagination({
+                currentPage: res.data?.data?.current_page || 1,
+                lastPage: res.data?.data?.last_page || 1,
+                total: res.data?.data?.total || 0,
+            });
         } catch (err) {
             console.error(err.message);
         } finally {
             setLoading(false);
         }
     }, []);
+
 
     const fetchStores = useCallback(async () => {
         try {
@@ -77,6 +93,7 @@ export const EmployeeProvider = ({ children }) => {
             value={{
                 employees,
                 stores,
+                pagination,
                 loading,
                 fetchEmployees,
                 fetchStores,
